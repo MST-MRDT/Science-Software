@@ -156,13 +156,13 @@ byte receivedMsg[1];
 //Dynamixel Carousel;
 Servo Funnel;
 
-// telnet defaults to port 23
-EthernetServer local(23);
-EthernetClient remote;
+EthernetServer CCDServer(11001);
 
 void setup()
 {
   roveComm_Begin(192, 168, 1, 135); 
+  CCDServer.begin();
+  
   pinMode(MAIN_POWER, OUTPUT);
   digitalWrite(MAIN_POWER, HIGH);
   
@@ -312,25 +312,15 @@ void loop()
      }//end fnctn 
    }//end if
    
-   /////////////////////////////////
-   // Send ccd tcp to BaseStation //
-   /////////////////////////////////
-   
-   ccd_tcp_req = false;
-   
-
-  remote = local.available();
-   
-   while (remote) 
+   /////////////////////
+   // CCD-Data Server //
+   /////////////////////
+   EthernetClient client = CCDServer.available();
+   if(client)
    {
-      remote.read();
-      ccd_tcp_req = true;
-   }//end while
-   
-   if(ccd_tcp_req)
-   {
-      local.write(&(recieve_ccd_image.ccd_image[0]), CCD_IMAGE_SIZE );
-   }//end if
+     CCDServer.write(recieve_ccd_image.ccd_image, CCD_IMAGE_SIZE);
+     client.stop();
+   }
    
    /////////////////////////////////////
    // Send sensor data to BaseStation //
