@@ -106,15 +106,15 @@ bool ccd_tcp_req = false;
 
 struct recieve_drill_data 
 { 
-  float t1_data;
-  float t2_data;
-  float t3_data;
-  float t4_data;
-  float m1_data;
-  float m2_data;
-  float m3_data;
-  float m4_data;
-  float drill_current;
+  int t1_data;
+  int t2_data;
+  int t3_data;
+  int t4_data;
+  int m1_data;
+  int m2_data;
+  int m3_data;
+  int m4_data;
+  int drill_current;
 };
 
 struct send_drill_data 
@@ -133,6 +133,7 @@ const int CCD_SERIAL_TIMEOUT = 3000;
 struct ccd_command 
 { 
   uint16_t ccd_id;
+  byte request_flag;
 };
 
 struct ccd_image 
@@ -140,6 +141,8 @@ struct ccd_image
   uint8_t ccd_image[CCD_IMAGE_SIZE]  = { 0 };;
   byte recieved_flag; //i before e, except after c
 };
+
+
 
 struct ccd_command  send_ccd_command;
 struct ccd_image    recieve_ccd_image;
@@ -170,19 +173,20 @@ void setup()
   digitalWrite(DYNA_POWER, HIGH);
 
 
+  Serial.begin(9600);
   
   pinMode(LASER_PIN, OUTPUT);
   
   Funnel.attach(FUNNEL_SERVO);
   
-  Serial5.begin(9600); 
+  Serial6.begin(9600); 
   Serial7.begin(115200); 
   
-  FromDrillBoard.begin(details(receive_telem), &Serial5);  
-  ToDrillBoard.begin(details(send_command), &Serial5);
+  FromDrillBoard.begin(details(receive_telem), &Serial6);  
+  ToDrillBoard.begin(details(send_command), &Serial6);
   
-  FromCCDBoard.begin(details(recieve_ccd_image), &Serial5);  
-  ToCCDBoard.begin(details(send_ccd_command), &Serial5);
+  FromCCDBoard.begin(details(recieve_ccd_image), &Serial7);  
+  ToCCDBoard.begin(details(send_ccd_command), &Serial7);
 }//end setup
 
 void loop()
@@ -297,12 +301,13 @@ void loop()
      //DynamixelRotateJoint(Carousel, position * 204);
      setRegister2(1,0x1e,position*204);//set goal position
    }
-   
+  /* 
    if(dataID == CCD_REQ)
    {
      send_ccd_command.ccd_id = dataID;
-     recieve_ccd_image.recieved_flag = false;
+     send_ccd_command.request_flag = true;
      
+     recieve_ccd_image.recieved_flag = false;
      ToCCDBoard.sendData();
      
      ccd_serial_timeout = millis() + CCD_SERIAL_TIMEOUT;
@@ -311,7 +316,7 @@ void loop()
        FromCCDBoard.receiveData();
      }//end fnctn 
    }//end if
-   
+  */ 
    /////////////////////
    // CCD-Data Server //
    /////////////////////
@@ -325,9 +330,19 @@ void loop()
    /////////////////////////////////////
    // Send sensor data to BaseStation //
    /////////////////////////////////////
-   
+   Serial.println("trying to receive_telem.t1_data: ");
    if(FromDrillBoard.receiveData())
    {
+     
+     Serial.print("receive_telem.t1_data: "); Serial.println(receive_telem.t1_data);
+     Serial.print("receive_telem.t2_data: "); Serial.println(receive_telem.t2_data);
+     Serial.print("receive_telem.t3_data: "); Serial.println(receive_telem.t3_data);
+     Serial.print("receive_telem.t4_data: "); Serial.println(receive_telem.t4_data);
+     Serial.print("receive_telem.m1_data: "); Serial.println(receive_telem.m1_data);
+     Serial.print("receive_telem.m2_data: "); Serial.println(receive_telem.m2_data);
+     Serial.print("receive_telem.m3_data: "); Serial.println(receive_telem.m3_data);
+     Serial.print("receive_telem.m4_data: "); Serial.println(receive_telem.m4_data);
+  /*   
      if(t1_on)
        roveComm_SendMsg(0x720, sizeof(receive_telem.t1_data), &receive_telem.t1_data);
      if(t2_on)
@@ -344,6 +359,7 @@ void loop()
        roveComm_SendMsg(0x72A, sizeof(receive_telem.m3_data), &receive_telem.m3_data);
      if(m4_on) 
        roveComm_SendMsg(0x72B, sizeof(receive_telem.m4_data), &receive_telem.m4_data);
+   */    
    }//end if
 }//end loop
   
