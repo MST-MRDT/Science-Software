@@ -104,8 +104,8 @@ bool ccd_tcp_req = false;
 //    EasyTransfer Protocol     //
 //////////////////////////////////
 
-struct recieve_drill_data 
-{ 
+//struct recieve_drill_data 
+//{ 
   int t1_data;
   int t2_data;
   int t3_data;
@@ -115,40 +115,38 @@ struct recieve_drill_data
   int m3_data;
   int m4_data;
   int drill_current;
-};
+//};
 
-struct send_drill_data 
-{ 
+//struct send_drill_data 
+//{ 
   uint16_t drill_cmd;
-};
+//};
 
-struct recieve_drill_data receive_telem;
-struct send_drill_data    send_command;
+//struct recieve_drill_data receive_telem;
+//struct send_drill_data    send_command;
 
-EasyTransfer FromDrillBoard, ToDrillBoard;
+//EasyTransfer FromDrillBoard, ToDrillBoard;
 
 const int CCD_IMAGE_SIZE     = 3648;
 const int CCD_SERIAL_TIMEOUT = 3000;
 
-struct ccd_command 
-{ 
+//struct ccd_command 
+//{ 
   uint16_t ccd_id;
   byte request_flag;
-};
+//};
 
-struct ccd_image 
-{ 
+//struct ccd_image 
+//{ 
   uint8_t ccd_image[CCD_IMAGE_SIZE]  = { 0 };;
   byte recieved_flag; //i before e, except after c
-};
-
-
-
+//};
+/*
 struct ccd_command  send_ccd_command;
 struct ccd_image    recieve_ccd_image;
 
 EasyTransfer FromCCDBoard, ToCCDBoard;
-
+*/
 //////////////////////////////////
 
 float dataRead;
@@ -182,11 +180,11 @@ void setup()
   Serial6.begin(9600); 
   Serial7.begin(115200); 
   
-  FromDrillBoard.begin(details(receive_telem), &Serial6);  
-  ToDrillBoard.begin(details(send_command), &Serial6);
+  //FromDrillBoard.begin(details(receive_telem), &Serial6);  
+  //ToDrillBoard.begin(details(send_command), &Serial6);
   
-  FromCCDBoard.begin(details(recieve_ccd_image), &Serial7);  
-  ToCCDBoard.begin(details(send_ccd_command), &Serial7);
+  //FromCCDBoard.begin(details(recieve_ccd_image), &Serial7);  
+  //ToCCDBoard.begin(details(send_ccd_command), &Serial7);
 }//end setup
 
 void loop()
@@ -277,16 +275,13 @@ void loop()
      switch(receivedMsg[0])
      {
        case DRILL_FWD:
-         send_command.drill_cmd = DRILL_FWD;
-         ToDrillBoard.sendData();
+         Serial.write(DRILL_FWD);
          break;
        case DRILL_STOP:
-         send_command.drill_cmd = DRILL_STOP;
-         ToDrillBoard.sendData();
+         Serial.write(DRILL_STOP);
          break;
        case DRILL_REV:
-         send_command.drill_cmd = DRILL_REV;
-         ToDrillBoard.sendData();
+         Serial.write(DRILL_REV);
          break;
      }//end switch
    }//end if
@@ -316,7 +311,7 @@ void loop()
        FromCCDBoard.receiveData();
      }//end fnctn 
    }//end if
-  */ 
+  
    /////////////////////
    // CCD-Data Server //
    /////////////////////
@@ -326,40 +321,33 @@ void loop()
      CCDServer.write(recieve_ccd_image.ccd_image, CCD_IMAGE_SIZE);
      client.stop();
    }
-   
+   */
    /////////////////////////////////////
    // Send sensor data to BaseStation //
    /////////////////////////////////////
    Serial.println("trying to receive_telem.t1_data: ");
-   if(FromDrillBoard.receiveData())
+   
+   if(Serial6.available())
    {
-     
-     Serial.print("receive_telem.t1_data: "); Serial.println(receive_telem.t1_data);
-     Serial.print("receive_telem.t2_data: "); Serial.println(receive_telem.t2_data);
-     Serial.print("receive_telem.t3_data: "); Serial.println(receive_telem.t3_data);
-     Serial.print("receive_telem.t4_data: "); Serial.println(receive_telem.t4_data);
-     Serial.print("receive_telem.m1_data: "); Serial.println(receive_telem.m1_data);
-     Serial.print("receive_telem.m2_data: "); Serial.println(receive_telem.m2_data);
-     Serial.print("receive_telem.m3_data: "); Serial.println(receive_telem.m3_data);
-     Serial.print("receive_telem.m4_data: "); Serial.println(receive_telem.m4_data);
-  /*   
+     while(Serial.read() != 0xFF);
+       
      if(t1_on)
-       roveComm_SendMsg(0x720, sizeof(receive_telem.t1_data), &receive_telem.t1_data);
+       roveComm_SendMsg(0x720, sizeof(t1_data), &t1_data);
      if(t2_on)
-       roveComm_SendMsg(0x721, sizeof(receive_telem.t2_data), &receive_telem.t2_data);
+       roveComm_SendMsg(0x721, sizeof(t2_data), &t2_data);
      if(t3_on)
-       roveComm_SendMsg(0x722, sizeof(receive_telem.t3_data), &receive_telem.t3_data);
+       roveComm_SendMsg(0x722, sizeof(t3_data), &t3_data);
      if(t4_on)
-       roveComm_SendMsg(0x723, sizeof(receive_telem.t4_data), &receive_telem.t4_data);
+       roveComm_SendMsg(0x723, sizeof(t4_data), &t4_data);
      if(m1_on)  
-       roveComm_SendMsg(0x728, sizeof(receive_telem.m1_data), &receive_telem.m1_data);
+       roveComm_SendMsg(0x728, sizeof(m1_data), &m1_data);
      if(m2_on)  
-       roveComm_SendMsg(0x729, sizeof(receive_telem.m2_data), &receive_telem.m2_data);
+       roveComm_SendMsg(0x729, sizeof(m2_data), &m2_data);
      if(m3_on) 
-       roveComm_SendMsg(0x72A, sizeof(receive_telem.m3_data), &receive_telem.m3_data);
+       roveComm_SendMsg(0x72A, sizeof(m3_data), &m3_data);
      if(m4_on) 
-       roveComm_SendMsg(0x72B, sizeof(receive_telem.m4_data), &receive_telem.m4_data);
-   */    
+       roveComm_SendMsg(0x72B, sizeof(m4_data), &m4_data);
+     
    }//end if
 }//end loop
   
